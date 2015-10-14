@@ -82,7 +82,7 @@ def show_only_for_loops(cursor, filter_pred=verbose, level=Level(), is_for=0):
                 show_type(cursor.type.get_canonical(), level+1, 'canonical type:')
         if is_for:
             for e in cursor.get_tokens():
-                print 'level: ', level, e
+                print 'level: ', level, e.spelling
         for c in cursor.get_children():
             show_only_for_loops(c, filter_pred, level+1, is_for)
 
