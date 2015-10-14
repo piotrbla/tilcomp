@@ -18,7 +18,7 @@ class Level(int):
     '''represent currently visited level of a tree'''
     def show(self, *args):
         '''pretty print an indented line'''
-        print '\t'*self + ' '.join(map(str, args)) + 'kkk'
+        print '\t'*self + ' '.join(map(str, args))
     def __add__(self, inc):
         '''increase level'''
         return Level(super(Level, self).__add__(inc))
