@@ -18,7 +18,7 @@ class Level(int):
     '''represent currently visited level of a tree'''
     def show(self, *args):
         '''pretty print an indented line'''
-        print '\t'*self + ' '.join(map(str, args))
+        print '\t'*self + ' '.join(map(str, args)) + 'kkk'
     def __add__(self, inc):
         '''increase level'''
         return Level(super(Level, self).__add__(inc))
@@ -35,11 +35,13 @@ def qualifiers(t):
     if t.is_restrict_qualified(): q.add('restrict')
     return q
 
+
 def show_type(t, level, title):
     '''pretty print type AST'''
     level.show(title, str(t.kind), ' '.join(qualifiers(t)))
     if is_valid_type(t.get_pointee()):
         show_type(t.get_pointee(), level+1, 'points to:')
+
 
 def show_ast(cursor, filter_pred=verbose, level=Level()):
     '''pretty print cursor AST'''
@@ -51,6 +53,7 @@ def show_ast(cursor, filter_pred=verbose, level=Level()):
         for c in cursor.get_children():
             show_ast(c, filter_pred, level+1)
 
+
 def find_typerefs(node, typename):
     """ Find all references to the type named 'typename'
     """
@@ -58,8 +61,6 @@ def find_typerefs(node, typename):
         nodeKind = node.kind;
         if nodeKind == clang.cindex.CursorKind.TYPE_REF:
             print "TYPE_REF"
-        if nodeKind == clang.cindex.CursorKind.BLOCK_EXPR:
-            print "BLOCK"
         # ref_node = clang.cindex.Cursor(node)#Cursor_ref(node)
         # if ref_node.spelling == typename:
         #     print 'Found %s [line=%s, col=%s]' % (
@@ -69,22 +70,29 @@ def find_typerefs(node, typename):
         find_typerefs(c, typename)
 
 
-def show_only_for_loops(cursor, filter_pred=verbose, level=Level()):
+def show_only_for_loops(cursor, filter_pred=verbose, level=Level(), is_for=0):
     '''pretty print only for loops from AST'''
     if filter_pred(cursor, level):
-        level.show(cursor.kind, cursor.spelling, cursor.displayname, cursor.location)
-        if is_valid_type(cursor.type):
-            show_type(cursor.type, level+1, 'type:')
-            show_type(cursor.type.get_canonical(), level+1, 'canonical type:')
+        if cursor.kind == clang.cindex.CursorKind.FOR_STMT:
+            is_for = 1
+        if is_for:
+            level.show(cursor.kind, cursor.spelling, cursor.displayname, cursor.location)
+            if is_valid_type(cursor.type):
+                show_type(cursor.type, level+1, 'type:')
+                show_type(cursor.type.get_canonical(), level+1, 'canonical type:')
+        if is_for:
+            for e in cursor.get_tokens():
+                print 'level: ', level, e
         for c in cursor.get_children():
-            show_ast(c, filter_pred, level+1)
+            show_only_for_loops(c, filter_pred, level+1, is_for)
 
 
 index = clang.cindex.Index.create()
 translationUnit = index.parse(sys.argv[1])
 print 'Translation unit:', translationUnit.spelling
-for f in translationUnit.get_includes():
-    print '\t'*f.depth, f.include.name
+print 'Printing loops:'
+# for f in translationUnit.get_includes():
+#     print '\t'*f.depth, f.include.name
 #show_ast(translationUnit.cursor, no_system_includes)
 
 
