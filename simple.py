@@ -81,10 +81,32 @@ def show_only_for_loops(cursor, filter_pred=verbose, level=Level(), is_for=0):
                 show_type(cursor.type, level+1, 'type:')
                 show_type(cursor.type.get_canonical(), level+1, 'canonical type:')
         if is_for:
-            for e in cursor.get_tokens():
-                print 'level: ', level, e.spelling
+            if cursor.kind == clang.cindex.CursorKind.FOR_STMT or cursor.kind==clang.cindex.CursorKind.COMPOUND_STMT:
+                for e in cursor.get_tokens():
+                    print 'level: ', level, e.spelling
+
         for c in cursor.get_children():
             show_only_for_loops(c, filter_pred, level+1, is_for)
+
+def show_translation_unit(cursor):
+                for e in cursor.get_tokens():
+                    print e.spelling
+
+def find_and_print_1st_level_for_loops(cursor, filter_pred=verbose, level=Level(), for_nesting_level=0):
+    if filter_pred(cursor, level):
+        if cursor.kind == clang.cindex.CursorKind.FOR_STMT:
+            for_nesting_level += 1
+        # if for_nesting_level:
+        #     level.show(cursor.kind, cursor.spelling, cursor.displayname, cursor.location)
+        #     if is_valid_type(cursor.type):
+        #         show_type(cursor.type, level+1, 'type:')
+        #         show_type(cursor.type.get_canonical(), level+1, 'canonical type:')
+        if for_nesting_level==1:
+            for e in cursor.get_tokens():
+                print 'level: ', level, e.spelling
+
+        for c in cursor.get_children():
+            find_and_print_1st_level_for_loops(c, filter_pred, level+1, for_nesting_level)
 
 
 index = clang.cindex.Index.create()
@@ -94,9 +116,9 @@ print 'Printing loops:'
 # for f in translationUnit.get_includes():
 #     print '\t'*f.depth, f.include.name
 #show_ast(translationUnit.cursor, no_system_includes)
+#show_only_for_loops(translationUnit.cursor, no_system_includes)
+#show_translation_unit(translationUnit.cursor)
 
-
-show_only_for_loops(translationUnit.cursor, no_system_includes)
-
+find_and_print_1st_level_for_loops(translationUnit.cursor, no_system_includes)
 
 #find_typerefs(translationUnit.cursor, sys.argv[2])
