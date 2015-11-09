@@ -8,6 +8,8 @@ import clang.cindex
 def verbose(*args, **kwargs):
     '''filter predicate for show_ast: show all'''
     return True
+
+
 def no_system_includes(cursor, level):
     '''filter predicate for show_ast: filter out verbose stuff from system include files'''
     return (level!= 1) or (cursor.location.file is not None and not cursor.location.file.name.startswith('/usr/include'))
@@ -19,13 +21,16 @@ class Level(int):
     def show(self, *args):
         '''pretty print an indented line'''
         print '\t'*self + ' '.join(map(str, args))
+
     def __add__(self, inc):
         '''increase level'''
         return Level(super(Level, self).__add__(inc))
 
+
 def is_valid_type(t):
     '''used to check if a cursor has a type'''
     return t.kind != clang.cindex.TypeKind.INVALID
+
 
 def qualifiers(t):
     '''set of qualifiers of a type'''
@@ -88,9 +93,11 @@ def show_only_for_loops(cursor, filter_pred=verbose, level=Level(), is_for=0):
         for c in cursor.get_children():
             show_only_for_loops(c, filter_pred, level+1, is_for)
 
+
 def show_translation_unit(cursor):
                 for e in cursor.get_tokens():
                     print e.spelling
+
 
 def find_and_print_1st_level_for_loops(cursor, filter_pred=verbose, level=Level(), for_nesting_level=0):
     if filter_pred(cursor, level):
