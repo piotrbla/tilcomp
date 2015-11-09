@@ -13,7 +13,7 @@ def verbose(*args, **kwargs):
 
 def no_system_includes(cursor, level):
     """filter predicate for show_ast: filter out verbose stuff from system include files"""
-    return (level!= 1) or \
+    return (level != 1) or \
            (cursor.location.file is not None and not cursor.location.file.name.startswith('/usr/include'))
 
 
@@ -109,14 +109,18 @@ def find_and_print_1st_level_for_loops(cursor, filter_predicate=verbose, level=L
     if filter_predicate(cursor, level):
         if cursor.kind == clang.cindex.CursorKind.FOR_STMT:
             for_nesting_level += 1
+            if for_nesting_level == 1:
+                for e in cursor.get_tokens():
+                    if e.spelling == "for":
+                        print " "
+                    sys.stdout.write(e.spelling);
+                    sys.stdout.write(" ");
         # if for_nesting_level:
         #     level.show(cursor.kind, cursor.spelling, cursor.displayname, cursor.location)
         #     if is_valid_type(cursor.type):
         #         show_type(cursor.type, level+1, 'type:')
         #         show_type(cursor.type.get_canonical(), level+1, 'canonical type:')
-        if for_nesting_level == 1:
-            for e in cursor.get_tokens():
-                print 'level: ', level, e.spelling
+
 
         for c in cursor.get_children():
             find_and_print_1st_level_for_loops(c, filter_predicate, level+1, for_nesting_level)
